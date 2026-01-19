@@ -31,11 +31,11 @@ with st.spinner("Loading data..."):
     vehicles, customers, f_cost, f_freight = load_raw_data()
     df, city_stats = preprocess_data(vehicles, customers, f_cost, f_freight)
 
-# Create Tabs
-tab1, tab2 = st.tabs(["📊 Analysis", "🔮 Prediction"])
+# Navigation
+page = st.sidebar.radio("Navigate", ["Analysis", "Prediction"])
 
 # --- TAB 1: Analysis ---
-with tab1:
+if page == "Analysis":
     st.header("Fleet Data Analysis")
     
     col1, col2 = st.columns(2)
@@ -63,7 +63,7 @@ with tab1:
         st.pyplot(fig4)
 
 # --- TAB 2: Prediction ---
-with tab2:
+if page == "Prediction":
     st.header("Profit Prediction Setup")
     
     st.markdown("Use this tool to predict **Net Profit** for a **Single Delivery**. Select a truck type to load average trip stats, then override specific values.")
