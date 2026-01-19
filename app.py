@@ -68,20 +68,25 @@ with tab2:
     st.markdown("Use this tool to predict **Net Profit** for a **Single Delivery**. Select a truck type to load average trip stats, then override specific values.")
     
     # 1. Inputs
-    # Layout with form
+    
+    # Base Configuration (Outside Form to trigger update)
+    c_base, _ = st.columns(2)
+    with c_base:
+        st.subheader("Base Configuration")
+        truck_types = sorted(df[TRUCK_TYPE].dropna().unique())
+        # Triggers rerun when changed, updating defaults below
+        selected_truck = st.selectbox("Select Truck Type (Base)", truck_types)
+    
+    # Calculate means for the selected truck type
+    from config import NUMERICAL_FEATURES, DISTANCE_KM, WEIGHT_KG, WEIGHT_CUBIC, GOODS_VALUE
+    truck_means = df.groupby(TRUCK_TYPE)[NUMERICAL_FEATURES].mean()
 
+    # Form for Scenario Inputs (Prevents rerun on typing)
     with st.form("scenario_form"):
         c1, c2 = st.columns(2)
         with c1:
-             st.subheader("Base Configuration")
-             truck_types = sorted(df[TRUCK_TYPE].dropna().unique())
-             selected_truck = st.selectbox("Select Truck Type (Base)", truck_types)
-             
-             # defaults
-             from config import NUMERICAL_FEATURES, DISTANCE_KM, WEIGHT_KG, WEIGHT_CUBIC, GOODS_VALUE
-             truck_means = df.groupby(TRUCK_TYPE)[NUMERICAL_FEATURES].mean()
-             
              st.subheader("Scenario Variables")
+             # Values update based on selected_truck
              km_traveled = st.number_input("Trip KM Traveled", value=float(truck_means.loc[selected_truck, DISTANCE_KM]), min_value=1.0)
              weight_kg = st.number_input("Weight (Kg)", value=float(truck_means.loc[selected_truck, WEIGHT_KG]), min_value=1.0)
              weight_cubic = st.number_input("Weight (Cubic)", value=float(truck_means.loc[selected_truck, WEIGHT_CUBIC]), min_value=1.0)
