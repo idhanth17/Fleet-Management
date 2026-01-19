@@ -74,23 +74,40 @@ with tab2:
     with c_base:
         st.subheader("Base Configuration")
         truck_types = sorted(df[TRUCK_TYPE].dropna().unique())
-        # Triggers rerun when changed, updating defaults below
         selected_truck = st.selectbox("Select Truck Type (Base)", truck_types)
     
-    # Calculate means for the selected truck type
+    # Calculate means
     from config import NUMERICAL_FEATURES, DISTANCE_KM, WEIGHT_KG, WEIGHT_CUBIC, GOODS_VALUE
     truck_means = df.groupby(TRUCK_TYPE)[NUMERICAL_FEATURES].mean()
 
-    # Form for Scenario Inputs (Prevents rerun on typing)
+    # --- Session State Logic to Update Defaults ---
+    # Initialize keys if not present
+    if "trip_km" not in st.session_state:
+        st.session_state.trip_km = float(truck_means.loc[selected_truck, DISTANCE_KM])
+        st.session_state.weight_kg = float(truck_means.loc[selected_truck, WEIGHT_KG])
+        st.session_state.weight_cubic = float(truck_means.loc[selected_truck, WEIGHT_CUBIC])
+        st.session_state.goods_value = float(truck_means.loc[selected_truck, GOODS_VALUE])
+        st.session_state.last_truck = selected_truck
+
+    # Check for change
+    if st.session_state.last_truck != selected_truck:
+        st.session_state.trip_km = float(truck_means.loc[selected_truck, DISTANCE_KM])
+        st.session_state.weight_kg = float(truck_means.loc[selected_truck, WEIGHT_KG])
+        st.session_state.weight_cubic = float(truck_means.loc[selected_truck, WEIGHT_CUBIC])
+        st.session_state.goods_value = float(truck_means.loc[selected_truck, GOODS_VALUE])
+        st.session_state.last_truck = selected_truck
+        # We don't need rerun because widgets are drawn below
+
+    # Form for Scenario Inputs
     with st.form("scenario_form"):
         c1, c2 = st.columns(2)
         with c1:
              st.subheader("Scenario Variables")
-             # Values update based on selected_truck
-             km_traveled = st.number_input("Trip KM Traveled", value=float(truck_means.loc[selected_truck, DISTANCE_KM]), min_value=1.0)
-             weight_kg = st.number_input("Weight (Kg)", value=float(truck_means.loc[selected_truck, WEIGHT_KG]), min_value=1.0)
-             weight_cubic = st.number_input("Weight (Cubic)", value=float(truck_means.loc[selected_truck, WEIGHT_CUBIC]), min_value=1.0)
-             goods_value = st.number_input("Goods Value", value=float(truck_means.loc[selected_truck, GOODS_VALUE]), min_value=0.0)
+             # Use keys to bind to session state
+             km_traveled = st.number_input("Trip KM Traveled", key="trip_km", min_value=1.0)
+             weight_kg = st.number_input("Weight (Kg)", key="weight_kg", min_value=1.0)
+             weight_cubic = st.number_input("Weight (Cubic)", key="weight_cubic", min_value=1.0)
+             goods_value = st.number_input("Goods Value", key="goods_value", min_value=0.0)
 
         with c2:
              st.subheader("Run Prediction")
