@@ -68,37 +68,43 @@ with tab2:
     st.markdown("Use this tool to predict **Net Profit** for a **Single Delivery**. Select a truck type to load average trip stats, then override specific values.")
     
     # 1. Inputs
-    col_input1, col_input2 = st.columns(2)
-    
-    with col_input1:
-        st.subheader("Base Configuration")
-        # Get unique truck types
-        truck_types = sorted(df[TRUCK_TYPE].dropna().unique())
-        selected_truck = st.selectbox("Select Truck Type (Base)", truck_types)
-        
-        # Calculate means for the selected truck type
-        # Ideally we cache this or pre-calculate, but df is small enough
-        from config import NUMERICAL_FEATURES, DISTANCE_KM, WEIGHT_KG, WEIGHT_CUBIC, GOODS_VALUE
-        truck_means = df.groupby(TRUCK_TYPE)[NUMERICAL_FEATURES].mean()
-        
-        # Scenario Inputs
-        st.subheader("Scenario Variables")
-        km_traveled = st.number_input("Trip KM Traveled", value=float(truck_means.loc[selected_truck, DISTANCE_KM]), min_value=1.0)
-        weight_kg = st.number_input("Weight (Kg)", value=float(truck_means.loc[selected_truck, WEIGHT_KG]), min_value=1.0)
-        weight_cubic = st.number_input("Weight (Cubic)", value=float(truck_means.loc[selected_truck, WEIGHT_CUBIC]), min_value=1.0)
-        goods_value = st.number_input("Goods Value", value=float(truck_means.loc[selected_truck, GOODS_VALUE]), min_value=0.0)
-
     with col_input2:
         st.subheader("Prediction Result")
         
-        if st.button("Calculate Net Profit", type="primary"):
-            from scenario_utils import create_scenario_input
-            from predict import predict_cost # Reuse or update predict logic
-            # Be careful: `predict_cost` in `predict.py` expects specific input structure?
-            # Actually, `predict.py` loads the pipeline. We can use it if we adapt `predict_cost` or just import pipeline there.
-            # Let's import pipeline directly here or check predict.py
+        with st.form("prediction_form"):
+            st.markdown("##### Confirm Details")
+            # Move inputs if needed, or just putting the button in form matches user intent to "submit"
+            # Actually, user wants inputs to NOT trigger run. So inputs must be INSIDE form.
+            # But inputs are in col_input1. 
+            pass 
+            # Re-architecting: We need inputs inside the form.
+            # Let's wrap THE WHOLE columns in the form? Or just the inputs.
             
-            # Construct scenario data
+    # Redoing layout to support form properly
+    with st.form("scenario_form"):
+        c1, c2 = st.columns(2)
+        with c1:
+             st.subheader("Base Configuration")
+             truck_types = sorted(df[TRUCK_TYPE].dropna().unique())
+             selected_truck = st.selectbox("Select Truck Type (Base)", truck_types)
+             
+             # defaults
+             from config import NUMERICAL_FEATURES, DISTANCE_KM, WEIGHT_KG, WEIGHT_CUBIC, GOODS_VALUE
+             truck_means = df.groupby(TRUCK_TYPE)[NUMERICAL_FEATURES].mean()
+             
+             st.subheader("Scenario Variables")
+             km_traveled = st.number_input("Trip KM Traveled", value=float(truck_means.loc[selected_truck, DISTANCE_KM]), min_value=1.0)
+             weight_kg = st.number_input("Weight (Kg)", value=float(truck_means.loc[selected_truck, WEIGHT_KG]), min_value=1.0)
+             weight_cubic = st.number_input("Weight (Cubic)", value=float(truck_means.loc[selected_truck, WEIGHT_CUBIC]), min_value=1.0)
+             goods_value = st.number_input("Goods Value", value=float(truck_means.loc[selected_truck, GOODS_VALUE]), min_value=0.0)
+
+        with c2:
+             st.subheader("Run Prediction")
+             st.write("Adjust values on the left and click Calculate.")
+             submitted = st.form_submit_button("Calculate Net Profit", type="primary")
+
+    if submitted:
+             # Logic ...
             scenario_data = {
                 TRUCK_TYPE: selected_truck,
                 DISTANCE_KM: km_traveled,

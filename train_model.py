@@ -3,7 +3,7 @@
 import joblib
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
@@ -27,7 +27,7 @@ y = df[TARGET]
 preprocessor = ColumnTransformer(
     transformers=[
         ("cat", OneHotEncoder(handle_unknown="ignore"), CATEGORICAL_FEATURES),
-        ("num", "passthrough", NUMERICAL_FEATURES),
+        ("num", StandardScaler(), NUMERICAL_FEATURES),
     ]
 )
 
