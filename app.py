@@ -3,6 +3,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from preprocessing import preprocess_data
 from predict import predict_cost
+from scenario_utils import create_scenario_input
 from config import CATEGORICAL_FEATURES, NUMERICAL_FEATURES, TRUCK_TYPE
 import eda
 
