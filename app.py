@@ -68,19 +68,8 @@ with tab2:
     st.markdown("Use this tool to predict **Net Profit** for a **Single Delivery**. Select a truck type to load average trip stats, then override specific values.")
     
     # 1. Inputs
-    with col_input2:
-        st.subheader("Prediction Result")
-        
-        with st.form("prediction_form"):
-            st.markdown("##### Confirm Details")
-            # Move inputs if needed, or just putting the button in form matches user intent to "submit"
-            # Actually, user wants inputs to NOT trigger run. So inputs must be INSIDE form.
-            # But inputs are in col_input1. 
-            pass 
-            # Re-architecting: We need inputs inside the form.
-            # Let's wrap THE WHOLE columns in the form? Or just the inputs.
-            
-    # Redoing layout to support form properly
+    # Layout with form
+
     with st.form("scenario_form"):
         c1, c2 = st.columns(2)
         with c1:
