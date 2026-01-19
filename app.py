@@ -1,0 +1,113 @@
+import streamlit as st
+import matplotlib.pyplot as plt
+from data_loader import load_raw_data
+from preprocessing import preprocess_data
+from predict import predict_cost
+from config import CATEGORICAL_FEATURES, NUMERICAL_FEATURES, TRUCK_TYPE
+import eda
+
+st.set_page_config(page_title="Fleet Analytics", layout="wide")
+st.title("🚚 Fleet Cost Prediction System")
+
+# Load and Preprocess Data
+with st.spinner("Loading data..."):
+    vehicles, customers, f_cost, f_freight = load_raw_data()
+    df, city_stats = preprocess_data(vehicles, customers, f_cost, f_freight)
+
+# Create Tabs
+tab1, tab2 = st.tabs(["📊 Analysis", "🔮 Prediction"])
+
+# --- TAB 1: Analysis ---
+with tab1:
+    st.header("Fleet Data Analysis")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("Truck Type Cost Analysis")
+        # Bar chart
+        fig1 = eda.plot_truck_type_analysis_bar(df)
+        st.pyplot(fig1)
+
+        st.subheader("Top 10 Cities by Goods Value")
+        # Top Cities
+        fig3 = eda.plot_top_10_cities(city_stats)
+        st.pyplot(fig3)
+        
+    with col2:
+        st.subheader("Costs per KM Distribution")
+        # Boxplot
+        fig2 = eda.plot_costs_per_km_boxplot(df)
+        st.pyplot(fig2)
+
+        st.subheader("Customer Geography")
+        # Geo scatter
+        fig4 = eda.plot_geo_distribution(city_stats)
+        st.pyplot(fig4)
+
+# --- TAB 2: Prediction ---
+with tab2:
+    st.header("Profit Prediction Setup")
+    
+    st.markdown("Use this tool to predict **Net Profit** for a **Single Delivery**. Select a truck type to load average trip stats, then override specific values.")
+    
+    # 1. Inputs
+    col_input1, col_input2 = st.columns(2)
+    
+    with col_input1:
+        st.subheader("Base Configuration")
+        # Get unique truck types
+        truck_types = sorted(df[TRUCK_TYPE].dropna().unique())
+        selected_truck = st.selectbox("Select Truck Type (Base)", truck_types)
+        
+        # Calculate means for the selected truck type
+        # Ideally we cache this or pre-calculate, but df is small enough
+        from config import NUMERICAL_FEATURES, DISTANCE_KM, WEIGHT_KG, WEIGHT_CUBIC, GOODS_VALUE
+        truck_means = df.groupby(TRUCK_TYPE)[NUMERICAL_FEATURES].mean()
+        
+        # Scenario Inputs
+        st.subheader("Scenario Variables")
+        km_traveled = st.number_input("Trip KM Traveled", value=float(truck_means.loc[selected_truck, DISTANCE_KM]), min_value=1.0)
+        weight_kg = st.number_input("Weight (Kg)", value=float(truck_means.loc[selected_truck, WEIGHT_KG]), min_value=1.0)
+        weight_cubic = st.number_input("Weight (Cubic)", value=float(truck_means.loc[selected_truck, WEIGHT_CUBIC]), min_value=1.0)
+        goods_value = st.number_input("Goods Value", value=float(truck_means.loc[selected_truck, GOODS_VALUE]), min_value=0.0)
+
+    with col_input2:
+        st.subheader("Prediction Result")
+        
+        if st.button("Calculate Net Profit", type="primary"):
+            from scenario_utils import create_scenario_input
+            from predict import predict_cost # Reuse or update predict logic
+            # Be careful: `predict_cost` in `predict.py` expects specific input structure?
+            # Actually, `predict.py` loads the pipeline. We can use it if we adapt `predict_cost` or just import pipeline there.
+            # Let's import pipeline directly here or check predict.py
+            
+            # Construct scenario data
+            scenario_data = {
+                TRUCK_TYPE: selected_truck,
+                DISTANCE_KM: km_traveled,
+                WEIGHT_KG: weight_kg,
+                WEIGHT_CUBIC: weight_cubic,
+                GOODS_VALUE: goods_value
+            }
+            
+            try:
+                # Prepare input DF using utility
+                scenario_df = create_scenario_input(scenario_data, truck_means)
+                
+                # Predict
+                # Use predict module wrapper if updated, or load pipeline here?
+                # Best to use predict module for consistency
+                from predict import predict_cost 
+                prediction = predict_cost(scenario_df)
+                
+                st.metric("Predicted Net Profit", f"₹ {prediction:,.2f}")
+                
+                if prediction > 0:
+                    st.success("This scenario is profitable!")
+                else:
+                    st.error("This scenario results in a loss.")
+                    
+            except Exception as e:
+                st.error(f"Prediction Error: {e}")
+
