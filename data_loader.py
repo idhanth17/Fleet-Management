@@ -1,7 +1,9 @@
 # data_loader.py
 
 import pandas as pd
+import streamlit as st
 
+@st.cache_data
 def load_raw_data():
     """
     Loads all raw datasets used in the Colab notebook.

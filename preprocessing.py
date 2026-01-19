@@ -7,6 +7,9 @@ from config import (
     KM_PER_LITER, MAINTENANCE_PER_KM, COSTS_PER_KG, REVENUE_PER_KM,
     REVENUE_PER_KG, FUEL_COSTS_PER_KM, FIXED_COSTS_PER_KM, NET_PROFIT
 )
+import streamlit as st
+
+@st.cache_data
 def preprocess_data(vehicles, customers, f_cost, f_freight):
     # Prevent SettingWithCopyWarning by working on explicit copies
     f_cost = f_cost.copy()
