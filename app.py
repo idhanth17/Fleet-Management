@@ -1,10 +1,26 @@
+import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
-from data_loader import load_raw_data
 from preprocessing import preprocess_data
 from predict import predict_cost
 from config import CATEGORICAL_FEATURES, NUMERICAL_FEATURES, TRUCK_TYPE
 import eda
+
+@st.cache_data
+def load_raw_data():
+    """
+    Loads all raw datasets.
+    """
+    # Dimension tables
+    dimension_tables = pd.read_excel("data/DimensionTables.xlsx")
+    vehicles = pd.read_excel("data/DimensionTables.xlsx", sheet_name="Vehicles")
+    customers = pd.read_excel("data/DimensionTables.xlsx", sheet_name="Customers")
+
+    # Cost & freight data
+    f_cost = pd.read_excel("data/fCosts.xlsx", header=2)
+    f_freight = pd.read_csv("data/fFreight.csv")
+
+    return vehicles, customers, f_cost, f_freight
 
 st.set_page_config(page_title="Fleet Analytics", layout="wide")
 st.title("🚚 Fleet Cost Prediction System")

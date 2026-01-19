@@ -17,7 +17,7 @@ def plot_truck_type_analysis_bar(df):
     truck_type_analysis.plot(kind='bar', ax=ax)
     ax.set_title("Average Costs per KM by Truck Type")
     ax.set_ylabel("Cost")
-    plt.xticks(rotation=45)
+    ax.tick_params(axis='x', rotation=45)
     return fig
 
 def plot_costs_per_km_boxplot(df):
@@ -70,7 +70,7 @@ def plot_top_10_cities(city_stats):
     ax.set_title('Top 10 Cities by Total Goods Value', fontsize=16)
     ax.set_xlabel('City', fontsize=12)
     ax.set_ylabel('Total Goods Value', fontsize=12)
-    ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
+    ax.tick_params(axis='x', rotation=45)
     return fig
 
 def plot_geo_distribution(city_stats):
